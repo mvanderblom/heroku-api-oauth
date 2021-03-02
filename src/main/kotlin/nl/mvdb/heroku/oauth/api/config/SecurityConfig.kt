@@ -49,10 +49,10 @@ class SecurityConfig : WebSecurityConfigurerAdapter() {
 
 class AudienceValidator(val targetAudience: String): OAuth2TokenValidator<Jwt> {
 
-    override fun validate(token: Jwt?): OAuth2TokenValidatorResult {
+    override fun validate(optionalToken: Jwt?): OAuth2TokenValidatorResult {
         val error = OAuth2Error("invalid_token", "The required audience is missing", null)
 
-        return token
+        return optionalToken
                  ?.let { token -> token.audience }
                  ?.let { audiences ->
                      audiences.contains(targetAudience)
