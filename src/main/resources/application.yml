@@ -1,0 +1,8 @@
+auth0:
+  audience: heroku-api-oauth
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://dry-sea-3477.eu.auth0.com/
