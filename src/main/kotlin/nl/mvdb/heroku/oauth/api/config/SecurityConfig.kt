@@ -2,6 +2,7 @@ package nl.mvdb.heroku.oauth.api.config
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
+import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
@@ -44,8 +45,9 @@ class SecurityConfig : WebSecurityConfigurerAdapter() {
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource? {
         val configuration = CorsConfiguration()
-        configuration.allowedOrigins = Arrays.asList("https://heroku-react-oauth.herokuapp.com")
-        configuration.allowedMethods = Arrays.asList("GET", "POST")
+        configuration.addAllowedOrigin("https://heroku-react-oauth.herokuapp.com")
+        configuration.addAllowedMethod(HttpMethod.GET)
+        configuration.addExposedHeader("Access-Control-Allow-Origin")
         val source = UrlBasedCorsConfigurationSource()
         source.registerCorsConfiguration("/**", configuration)
         return source
