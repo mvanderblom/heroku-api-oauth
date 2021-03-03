@@ -1,5 +1,6 @@
 package nl.mvdb.heroku.oauth.api.config
 
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.http.HttpMethod
@@ -15,10 +16,9 @@ import org.springframework.security.oauth2.jwt.*
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
-import java.util.*
 
 
-@EnableWebSecurity
+@EnableWebSecurity(debug = false)
 class SecurityConfig : WebSecurityConfigurerAdapter() {
 
     @Value("\${auth0.audience}")
@@ -27,9 +27,14 @@ class SecurityConfig : WebSecurityConfigurerAdapter() {
     @Value("\${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
     private val issuer: String? = null
 
+    @Autowired
+    private lateinit var apiProps: ApiProps
+
     override fun configure(http: HttpSecurity?) {
         http {
+            cors {  }
             authorizeRequests {
+                authorize(HttpMethod.OPTIONS, "/**", permitAll)
                 authorize("/api/public", permitAll)
                 authorize("/api/private", authenticated)
                 authorize("/api/private-scoped", hasAnyAuthority("SCOPE_read:private_resource"))
@@ -37,7 +42,6 @@ class SecurityConfig : WebSecurityConfigurerAdapter() {
             oauth2ResourceServer {
                 jwt {  }
             }
-            cors {  }
         }
     }
 
@@ -45,9 +49,10 @@ class SecurityConfig : WebSecurityConfigurerAdapter() {
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource? {
         val configuration = CorsConfiguration()
-        configuration.addAllowedOrigin("https://heroku-react-oauth.herokuapp.com")
-        configuration.addAllowedMethod(HttpMethod.GET)
-        configuration.addExposedHeader("Access-Control-Allow-Origin")
+        configuration.allowedOrigins = this.apiProps.allowedOrigins
+        configuration.addAllowedHeader("authorization")
+        configuration.allowCredentials = true
+
         val source = UrlBasedCorsConfigurationSource()
         source.registerCorsConfiguration("/**", configuration)
         return source

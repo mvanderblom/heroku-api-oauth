@@ -1,8 +1,24 @@
+api:
+  allowed-origins:
+    - "https://heroku-react-oauth.herokuapp.com"
+    - "http://localhost:3000"
+
 auth0:
   audience: heroku-api-oauth
+
 spring:
   security:
     oauth2:
       resourceserver:
         jwt:
           issuer-uri: https://dry-sea-3477.eu.auth0.com/
+
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG
+        web:
+          cors: DEBUG
+
+
