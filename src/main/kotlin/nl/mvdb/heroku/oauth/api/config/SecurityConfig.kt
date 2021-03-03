@@ -11,6 +11,11 @@ import org.springframework.security.oauth2.core.OAuth2Error
 import org.springframework.security.oauth2.core.OAuth2TokenValidator
 import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult
 import org.springframework.security.oauth2.jwt.*
+import org.springframework.web.cors.CorsConfiguration
+import org.springframework.web.cors.CorsConfigurationSource
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource
+import java.util.*
+
 
 @EnableWebSecurity
 class SecurityConfig : WebSecurityConfigurerAdapter() {
@@ -28,11 +33,22 @@ class SecurityConfig : WebSecurityConfigurerAdapter() {
                 authorize("/api/private", authenticated)
                 authorize("/api/private-scoped", hasAnyAuthority("SCOPE_read:private_resource"))
             }
-            cors {  }
             oauth2ResourceServer {
                 jwt {  }
             }
+            cors {  }
         }
+    }
+
+
+    @Bean
+    fun corsConfigurationSource(): CorsConfigurationSource? {
+        val configuration = CorsConfiguration()
+        configuration.allowedOrigins = Arrays.asList("https://heroku-react-oauth.herokuapp.com")
+        configuration.allowedMethods = Arrays.asList("GET", "POST")
+        val source = UrlBasedCorsConfigurationSource()
+        source.registerCorsConfiguration("/**", configuration)
+        return source
     }
 
     @Bean
