@@ -1,8 +1,8 @@
 package nl.mvdb.heroku.oauth.api.config
 
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
@@ -14,13 +14,21 @@ import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter
+
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+import org.springframework.security.web.savedrequest.RequestCacheAwareFilter
 
 
 @EnableWebSecurity(debug = true)
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 class SecurityConfig : WebSecurityConfigurerAdapter() {
 
     @Autowired
     private lateinit var securityProps: SecurityProps
+    @Autowired
+    private lateinit var jwtFilter: JwtAuthenticationFilter
 
     override fun configure(http: HttpSecurity?) {
         http {
@@ -28,11 +36,14 @@ class SecurityConfig : WebSecurityConfigurerAdapter() {
             authorizeRequests {
                 authorize("/api/public", permitAll)
                 authorize("/api/private", authenticated)
-                authorize("/api/private-scoped", hasAnyAuthority("SCOPE_read:private_resource"))
+                authorize("/api/private-scoped", hasAuthority("read:private_resource"))
+//                authorize("/api/visitor-private", hasRole("visitor"))
+//                authorize("/api/admin-private", hasRole("admin"))
             }
             oauth2ResourceServer {
                 jwt {  }
             }
+            addFilterBefore(jwtFilter, RequestCacheAwareFilter::class.java)
         }
     }
 
@@ -60,9 +71,21 @@ class SecurityConfig : WebSecurityConfigurerAdapter() {
     }
 
     @Bean
-    fun client() = WebClient.builder()
+    fun auth0WebClient() = WebClient.builder()
             .baseUrl(this.securityProps.auth0.issuerUri)
             .build()
+
+    @Bean
+    fun jwtAuthenticationConverter(): JwtAuthenticationConverter? {
+        val converter = JwtGrantedAuthoritiesConverter()
+        converter.setAuthoritiesClaimName("permissions")
+        converter.setAuthorityPrefix("")
+
+        val jwtConverter = JwtAuthenticationConverter()
+        jwtConverter.setJwtGrantedAuthoritiesConverter(converter)
+        return jwtConverter
+    }
+
 
 }
 

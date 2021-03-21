@@ -1,5 +1,6 @@
 package nl.mvdb.heroku.oauth.api.web
 
+import nl.mvdb.heroku.oauth.api.config.UserInfo
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpHeaders
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
@@ -8,6 +9,12 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
+import org.springframework.web.bind.annotation.RequestMethod
+
+import org.springframework.security.access.prepost.PreAuthorize
+
+
+
 
 @RestController()
 @RequestMapping("/api")
@@ -31,6 +38,18 @@ class HelloWorldController {
         return HelloWorldResponse(hello = "private scoped world")
     }
 
+    @PreAuthorize("hasRole('Visitor')")
+    @GetMapping("/visitor-private")
+    fun userPing(): HelloWorldResponse? {
+        return HelloWorldResponse(hello = "visitor world")
+    }
+
+    @PreAuthorize("hasRole('Admin')")
+    @GetMapping("/admin-private")
+    fun adminPing(): HelloWorldResponse? {
+        return HelloWorldResponse(hello = "admin world")
+    }
+
     @GetMapping("/user")
     fun userInfo(token: JwtAuthenticationToken): Mono<UserInfo> {
         return client.get()
@@ -39,17 +58,9 @@ class HelloWorldController {
                 .retrieve()
                 .bodyToMono(UserInfo::class.java)
     }
+
 }
 
 
 data class HelloWorldResponse(val hello: String)
 
-data class UserInfo(
-        var sub: String? = null,
-        var nickname: String? = null,
-        var name: String? = null,
-        var picture: String? = null,
-        var updatedAt: String? = null,
-        var email: String? = null,
-        var emailVerified: Boolean = false
-)
