@@ -38,13 +38,11 @@ class HelloWorldController {
         return HelloWorldResponse(hello = "private scoped world")
     }
 
-    @PreAuthorize("hasRole('Visitor')")
     @GetMapping("/visitor-private")
     fun userPing(): HelloWorldResponse? {
         return HelloWorldResponse(hello = "visitor world")
     }
 
-    @PreAuthorize("hasRole('Admin')")
     @GetMapping("/admin-private")
     fun adminPing(): HelloWorldResponse? {
         return HelloWorldResponse(hello = "admin world")

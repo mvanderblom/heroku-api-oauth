@@ -16,8 +16,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter
 
-import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.security.web.savedrequest.RequestCacheAwareFilter
 
 
@@ -37,8 +35,8 @@ class SecurityConfig : WebSecurityConfigurerAdapter() {
                 authorize("/api/public", permitAll)
                 authorize("/api/private", authenticated)
                 authorize("/api/private-scoped", hasAuthority("read:private_resource"))
-//                authorize("/api/visitor-private", hasRole("visitor"))
-//                authorize("/api/admin-private", hasRole("admin"))
+                authorize("/api/visitor-private", hasAuthority("Visitor"))
+                authorize("/api/admin-private", hasAuthority("Admin"))
             }
             oauth2ResourceServer {
                 jwt {  }
@@ -70,23 +68,18 @@ class SecurityConfig : WebSecurityConfigurerAdapter() {
         return jwtDecoder
     }
 
+
+    @Bean
+    fun jwtAuthenticationConverter(): JwtAuthenticationConverter? {
+        val jwtConverter = JwtAuthenticationConverter()
+        jwtConverter.setJwtGrantedAuthoritiesConverter(CustomJwtAuthConverter())
+        return jwtConverter
+    }
+
     @Bean
     fun auth0WebClient() = WebClient.builder()
             .baseUrl(this.securityProps.auth0.issuerUri)
             .build()
-
-    @Bean
-    fun jwtAuthenticationConverter(): JwtAuthenticationConverter? {
-        val converter = JwtGrantedAuthoritiesConverter()
-        converter.setAuthoritiesClaimName("permissions")
-        converter.setAuthorityPrefix("")
-
-        val jwtConverter = JwtAuthenticationConverter()
-        jwtConverter.setJwtGrantedAuthoritiesConverter(converter)
-        return jwtConverter
-    }
-
-
 }
 
 

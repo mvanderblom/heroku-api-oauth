@@ -35,7 +35,7 @@ class JwtAuthenticationFilter : OncePerRequestFilter() {
             val token = authentication.principal as Jwt
             val roles = token.claims.get("http://heroku-api-oauth/roles") as JSONArray
             val auths = roles.map { SimpleGrantedAuthority(it as String) }
-            authentication.authorities.addAll(auths)
+//            authentication.authorities.addAll(auths)
             print(auths)
         }
 
